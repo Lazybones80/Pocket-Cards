@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <meta name="theme-color" content="#090b10" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Pocket Cards" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <title>Pocket Cards</title>
+  <style>
+    :root{
+      --bg:#090b10;
+      --panel:#11151d;
+      --panel2:#171c26;
+      --line:#2a3140;
+      --text:#f6f7fb;
+      --muted:#959dac;
+      --blue:#2694ff;
+      --blue2:#65b6ff;
+      --danger:#ff5f68;
+      --card-radius:22px;
+      --shadow:0 18px 45px rgba(0,0,0,.38);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif}
+    body{overscroll-behavior-y:none}
+    button,input,select{font:inherit}
+    button{color:inherit}
+    .app{
+      width:min(100%,560px);
+      min-height:100dvh;
+      margin:0 auto;
+      padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 30px);
+      position:relative;
+    }
+    header{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-bottom:14px;
+    }
+    .brand-wrap{min-width:0}
+    .eyebrow{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px}
+    h1{margin:0;font-size:32px;line-height:1;letter-spacing:-.035em}
+    .icon-btn,.primary-btn,.secondary-btn,.danger-btn{
+      border:0;border-radius:14px;min-height:46px;cursor:pointer;font-weight:800;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    }
+    .icon-btn{
+      width:46px;min-width:46px;background:var(--blue);font-size:27px;line-height:1;box-shadow:0 8px 24px rgba(38,148,255,.22)
+    }
+    .toolbar{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:12px}
+    .search{
+      width:100%;border:1px solid var(--line);outline:0;background:var(--panel);color:var(--text);
+      border-radius:14px;padding:13px 14px;font-size:16px
+    }
+    .search:focus{border-color:#41678c;box-shadow:0 0 0 3px rgba(38,148,255,.12)}
+    .tiny-btn{
+      border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:0 14px;font-weight:800;cursor:pointer
+    }
+    .chips{display:flex;gap:8px;overflow:auto;padding:2px 0 10px;scrollbar-width:none}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{
+      flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--muted);
+      padding:9px 12px;border-radius:999px;font-weight:800;font-size:13px;cursor:pointer
+    }
+    .chip.active{background:rgba(38,148,255,.14);border-color:rgba(38,148,255,.58);color:#d8ecff}
+    .wallet{display:flex;flex-direction:column;gap:14px;padding-top:3px}
+    .card-item{
+      position:relative;border-radius:var(--card-radius);background:#181d26;box-shadow:var(--shadow);
+      overflow:hidden;min-height:210px;border:1px solid rgba(255,255,255,.08);cursor:pointer;
+      transform:translateZ(0);
+    }
+    .card-item:active{transform:scale(.992)}
+    .card-img{
+      width:100%;height:220px;display:block;background:#0d1016;
+    }
+    .fit-cover{object-fit:cover}
+    .fit-contain{object-fit:contain}
+    .card-overlay{
+      position:absolute;inset:auto 0 0 0;padding:34px 16px 14px;
+      background:linear-gradient(transparent,rgba(0,0,0,.82));
+      display:flex;align-items:flex-end;justify-content:space-between;gap:12px;
+      pointer-events:none
+    }
+    .card-meta{min-width:0}
+    .card-title{font-weight:900;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .card-cat{font-size:12px;color:#d1d5de;margin-top:3px;font-weight:700}
+    .more{
+      pointer-events:auto;flex:0 0 auto;width:38px;height:38px;border:1px solid rgba(255,255,255,.18);
+      border-radius:50%;background:rgba(10,12,17,.62);backdrop-filter:blur(10px);font-size:18px;cursor:pointer
+    }
+    .empty{
+      margin:55px 0 0;padding:32px 22px;border:1px dashed #303746;border-radius:24px;text-align:center;color:var(--muted)
+    }
+    .empty .big{font-size:42px;margin-bottom:10px}
+    .empty strong{display:block;color:var(--text);font-size:20px;margin-bottom:8px}
+    .empty p{margin:0 0 18px;line-height:1.45}
+    .primary-btn{background:var(--blue);padding:0 18px}
+    .secondary-btn{background:var(--panel2);border:1px solid var(--line);padding:0 16px}
+    .danger-btn{background:rgba(255,95,104,.12);border:1px solid rgba(255,95,104,.38);color:#ff858b;padding:0 16px}
+    .modal{
+      position:fixed;inset:0;z-index:100;background:rgba(3,4,7,.68);backdrop-filter:blur(10px);
+      display:none;align-items:flex-end;justify-content:center
+    }
+    .modal.open{display:flex}
+    .sheet{
+      width:min(100%,560px);max-height:94dvh;overflow:auto;background:#0f131b;border:1px solid #29303e;
+      border-radius:26px 26px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 20px);
+      box-shadow:0 -28px 60px rgba(0,0,0,.42)
+    }
+    .grab{width:42px;height:5px;background:#414958;border-radius:999px;margin:0 auto 14px}
+    .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .sheet h2{margin:0;font-size:24px}
+    .close{width:38px;height:38px;border:0;background:#1d2330;border-radius:50%;font-size:20px;cursor:pointer}
+    .form-grid{display:grid;gap:13px}
+    label{font-size:13px;font-weight:800;color:#c6ccd7}
+    .field{display:grid;gap:7px}
+    .field input,.field select{
+      width:100%;border:1px solid var(--line);background:#151a23;color:var(--text);border-radius:13px;
+      padding:13px 12px;outline:0
+    }
+    .field input:focus,.field select:focus{border-color:#4d7aa5}
+    .image-pick{
+      border:1px dashed #3b4658;border-radius:18px;padding:12px;background:#11161e
+    }
+    .pick-row{display:flex;gap:9px;flex-wrap:wrap}
+    .pick-btn{
+      flex:1;border:1px solid var(--line);background:#1a202b;min-height:46px;border-radius:13px;font-weight:800;cursor:pointer
+    }
+    .preview-wrap{margin-top:10px;display:none}
+    .preview-wrap.visible{display:block}
+    .preview{
+      width:100%;height:180px;border-radius:14px;background:#090c11;object-fit:contain;border:1px solid #252c38
+    }
+    .preview-note{font-size:12px;color:var(--muted);margin-top:7px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .actions{display:flex;gap:9px;margin-top:5px}
+    .actions>*{flex:1}
+    .viewer{
+      position:fixed;inset:0;z-index:200;background:#000;display:none;flex-direction:column;
+      padding:calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 12px);
+    }
+    .viewer.open{display:flex}
+    .viewer-top{
+      min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:.18s ease
+    }
+    .viewer.chrome-hidden .viewer-top,.viewer.chrome-hidden .viewer-bottom{opacity:0;pointer-events:none}
+    .viewer-name{font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;flex:1}
+    .round{
+      border:1px solid #2a2f39;background:#11151b;width:42px;height:42px;border-radius:50%;cursor:pointer;font-weight:900
+    }
+    .stage{
+      flex:1;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden
+    }
+    .viewer-img{
+      max-width:100%;max-height:100%;object-fit:contain;border-radius:18px;
+      box-shadow:0 18px 55px rgba(0,0,0,.6);touch-action:manipulation;
+    }
+    .viewer-bottom{
+      min-height:58px;display:flex;justify-content:center;align-items:flex-end;gap:10px;transition:.18s ease
+    }
+    .pill{
+      border:1px solid #2f3540;background:#141920;border-radius:999px;padding:11px 16px;font-weight:800;cursor:pointer
+    }
+    .hidden{display:none!important}
+    .toast{
+      position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%) translateY(18px);
+      background:#202631;color:white;border:1px solid #343c4b;border-radius:999px;padding:10px 14px;
+      opacity:0;pointer-events:none;transition:.2s;z-index:400;font-weight:750;font-size:13px
+    }
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+    .install-tip{
+      display:none;margin:2px 0 14px;padding:11px 13px;border:1px solid #273548;border-radius:14px;
+      background:rgba(38,148,255,.08);color:#cfe8ff;font-size:13px;line-height:1.4
+    }
+    @media (display-mode: standalone){.install-tip{display:none!important}}
+    @media (min-width:700px){
+      .app{padding-top:26px}
+      .sheet{border-radius:26px;margin-bottom:16px}
+      .modal{align-items:center}
+      .card-img{height:250px}
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand-wrap">
+        <div class="eyebrow">Private image wallet</div>
+        <h1>Pocket Cards</h1>
+      </div>
+      <button class="icon-btn" id="addBtn" aria-label="Add card">+</button>
+    </header>
+
+    <div class="install-tip" id="installTip">
+      On iPhone: open this site in Safari, tap <strong>Share</strong>, then <strong>Add to Home Screen</strong>.
+    </div>
+
+    <div class="toolbar">
+      <input class="search" id="search" type="search" placeholder="Search cards" autocomplete="off" />
+      <button class="tiny-btn" id="installBtn" type="button">Install</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <section class="wallet" id="wallet"></section>
+  </main>
+
+  <div class="modal" id="cardModal" aria-hidden="true">
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="sheet-head">
+        <h2 id="modalTitle">Add card</h2>
+        <button class="close" id="modalClose" aria-label="Close">×</button>
+      </div>
+
+      <form class="form-grid" id="cardForm">
+        <input type="hidden" id="editingId" />
+        <div class="field">
+          <label for="title">Card name</label>
+          <input id="title" maxlength="80" placeholder="Gym membership, ID, loyalty card…" required />
+        </div>
+        <div class="field">
+          <label for="category">Category</label>
+          <input id="category" maxlength="40" placeholder="Membership, ID, Rewards…" />
+        </div>
+
+        <div class="field">
+          <label>Front image</label>
+          <div class="image-pick">
+            <div class="pick-row">
+              <button type="button" class="pick-btn" id="frontPick">Choose image</button>
+              <button type="button" class="pick-btn" id="frontCamera">Camera</button>
+            </div>
+            <input id="frontFile" type="file" accept="image/*" hidden />
+            <input id="frontCameraFile" type="file" accept="image/*" capture="environment" hidden />
+            <div class="preview-wrap" id="frontPreviewWrap">
+              <img class="preview" id="frontPreview" alt="Front preview" />
+              <div class="preview-note">Stored only in this browser on this device.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Back image <span style="color:#7e8797;font-weight:700">(optional)</span></label>
+          <div class="image-pick">
+            <div class="pick-row">
+              <button type="button" class="pick-btn" id="backPick">Choose image</button>
+              <button type="button" class="pick-btn" id="backCamera">Camera</button>
+            </div>
+            <input id="backFile" type="file" accept="image/*" hidden />
+            <input id="backCameraFile" type="file" accept="image/*" capture="environment" hidden />
+            <div class="preview-wrap" id="backPreviewWrap">
+              <img class="preview" id="backPreview" alt="Back preview" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="fit">Card image fit</label>
+            <select id="fit">
+              <option value="contain">Show full image</option>
+              <option value="cover">Fill card</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sort">Position</label>
+            <select id="sort">
+              <option value="top">Move to top</option>
+              <option value="keep">Keep position</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="danger-btn hidden" id="deleteBtn">Delete</button>
+          <button type="submit" class="primary-btn" id="saveBtn">Save card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="viewer" id="viewer">
+    <div class="viewer-top">
+      <button class="round" id="viewerClose" aria-label="Close">×</button>
+      <div class="viewer-name" id="viewerName"></div>
+      <button class="round" id="viewerEdit" aria-label="Edit">•••</button>
+    </div>
+    <div class="stage" id="stage">
+      <img class="viewer-img" id="viewerImg" alt="Card" />
+    </div>
+    <div class="viewer-bottom">
+      <button class="pill hidden" id="flipBtn">Show back</button>
+      <button class="pill" id="fullBtn">Fullscreen</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const DB_NAME = 'pocket-cards-db';
+  const STORE = 'cards';
+  let db;
+  let cards = [];
+  let activeCategory = 'All';
+  let viewerCardId = null;
+  let viewerSide = 'front';
+  let deferredInstallPrompt = null;
+  let frontBlob = null;
+  let backBlob = null;
+  let frontChanged = false;
+  let backChanged = false;
+
+  const $ = s => document.querySelector(s);
+  const wallet = $('#wallet');
+  const chips = $('#chips');
+  const search = $('#search');
+  const modal = $('#cardModal');
+  const form = $('#cardForm');
+  const viewer = $('#viewer');
+  const viewerImg = $('#viewerImg');
+  const viewerName = $('#viewerName');
+  const flipBtn = $('#flipBtn');
+  const toast = $('#toast');
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  function openDB(){
+    return new Promise((resolve,reject)=>{
+      const req=indexedDB.open(DB_NAME,1);
+      req.onupgradeneeded=()=>{
+        const d=req.result;
+        if(!d.objectStoreNames.contains(STORE)){
+          const s=d.createObjectStore(STORE,{keyPath:'id'});
+          s.createIndex('updatedAt','updatedAt');
+        }
+      };
+      req.onsuccess=()=>{db=req.result;resolve(db)};
+      req.onerror=()=>reject(req.error);
+    });
+  }
+
+  function tx(mode='readonly'){ return db.transaction(STORE,mode).objectStore(STORE); }
+
+  function getAllCards(){
+    return new Promise((resolve,reject)=>{
+      const r=tx().getAll();
+      r.onsuccess=()=>resolve(r.result || []);
+      r.onerror=()=>reject(r.error);
+    });
+  }
+
+  function putCard(card){
+    return new Promise((resolve,reject)=>{
+      const r=tx('readwrite').put(card);
+      r.onsuccess=()=>resolve(card);
+      r.onerror=()=>reject(r.error);
+    });
+  }
+
+  function removeCard(id){
+    return new Promise((resolve,reject)=>{
+      const r=tx('readwrite').delete(id);
+      r.onsuccess=()=>resolve();
+      r.onerror=()=>reject(r.error);
+    });
+  }
+
+  const objectUrls = new Set();
+  function blobUrl(blob){
+    if(!blob) return '';
+    const u=URL.createObjectURL(blob);
+    objectUrls.add(u);
+    return u;
+  }
+  function revokeObjectUrls(){
+    objectUrls.forEach(u=>URL.revokeObjectURL(u));
+    objectUrls.clear();
+  }
+
+  function normalizedCategory(c){ return (c || 'Other').trim() || 'Other'; }
+
+  function filteredCards(){
+    const q=search.value.trim().toLowerCase();
+    return cards
+      .filter(c => activeCategory === 'All' || normalizedCategory(c.category) === activeCategory)
+      .filter(c => !q || `${c.title} ${c.category||''}`.toLowerCase().includes(q))
+      .sort((a,b)=>(b.orderAt||b.updatedAt||0)-(a.orderAt||a.updatedAt||0));
+  }
+
+  function renderChips(){
+    const cats=['All',...Array.from(new Set(cards.map(c=>normalizedCategory(c.category)))).sort((a,b)=>a.localeCompare(b))];
+    chips.innerHTML='';
+    cats.forEach(cat=>{
+      const b=document.createElement('button');
+      b.className='chip'+(cat===activeCategory?' active':'');
+      b.textContent=cat;
+      b.onclick=()=>{activeCategory=cat;render()};
+      chips.appendChild(b);
+    });
+  }
+
+  function render(){
+    revokeObjectUrls();
+    renderChips();
+    const list=filteredCards();
+    wallet.innerHTML='';
+    if(!list.length){
+      wallet.innerHTML = `
+        <div class="empty">
+          <div class="big">▣</div>
+          <strong>${cards.length ? 'No matching cards' : 'Your wallet is empty'}</strong>
+          <p>${cards.length ? 'Try another search or category.' : 'Add any image — membership card, ID image, ticket, loyalty card, reference card, or anything else you want to keep handy.'}</p>
+          ${cards.length ? '' : '<button class="primary-btn" id="emptyAdd">Add your first card</button>'}
+        </div>`;
+      $('#emptyAdd')?.addEventListener('click',()=>openAdd());
+      return;
+    }
+
+    list.forEach(c=>{
+      const el=document.createElement('article');
+      el.className='card-item';
+      const fit = c.fit === 'cover' ? 'fit-cover' : 'fit-contain';
+      el.innerHTML=`
+        <img class="card-img ${fit}" src="${blobUrl(c.front)}" alt="">
+        <div class="card-overlay">
+          <div class="card-meta">
+            <div class="card-title"></div>
+            <div class="card-cat"></div>
+          </div>
+          <button class="more" aria-label="Edit card">•••</button>
+        </div>`;
+      el.querySelector('.card-title').textContent=c.title;
+      el.querySelector('.card-cat').textContent=normalizedCategory(c.category);
+      el.addEventListener('click',()=>openViewer(c.id));
+      el.querySelector('.more').addEventListener('click',(e)=>{e.stopPropagation();openEdit(c.id)});
+      wallet.appendChild(el);
+    });
+  }
+
+  function clearForm(){
+    form.reset();
+    $('#editingId').value='';
+    $('#modalTitle').textContent='Add card';
+    $('#deleteBtn').classList.add('hidden');
+    $('#sort').value='top';
+    frontBlob=null; backBlob=null; frontChanged=false; backChanged=false;
+    setPreview('front',null);
+    setPreview('back',null);
+  }
+
+  function setPreview(which, blob){
+    const wrap=$(`#${which}PreviewWrap`);
+    const img=$(`#${which}Preview`);
+    if(img.dataset.url) URL.revokeObjectURL(img.dataset.url);
+    if(blob){
+      const u=URL.createObjectURL(blob);
+      img.src=u; img.dataset.url=u; wrap.classList.add('visible');
+    }else{
+      img.removeAttribute('src'); delete img.dataset.url; wrap.classList.remove('visible');
+    }
+  }
+
+  function openModal(){
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+    setTimeout(()=>$('#title').focus(),80);
+  }
+  function closeModal(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+  }
+  function openAdd(){ clearForm(); openModal(); }
+
+  function cardById(id){ return cards.find(c=>c.id===id); }
+
+  function openEdit(id){
+    const c=cardById(id); if(!c) return;
+    clearForm();
+    $('#editingId').value=c.id;
+    $('#modalTitle').textContent='Edit card';
+    $('#title').value=c.title||'';
+    $('#category').value=c.category||'';
+    $('#fit').value=c.fit||'contain';
+    $('#sort').value='keep';
+    $('#deleteBtn').classList.remove('hidden');
+    frontBlob=c.front; backBlob=c.back||null;
+    setPreview('front',frontBlob); setPreview('back',backBlob);
+    if(viewer.classList.contains('open')) closeViewer();
+    openModal();
+  }
+
+  async function fileFromInput(input, which){
+    const file=input.files && input.files[0];
+    if(!file) return;
+    if(!file.type.startsWith('image/')) return showToast('Please choose an image.');
+    if(file.size > 25*1024*1024) return showToast('Image is too large (25 MB max).');
+    if(which==='front'){frontBlob=file;frontChanged=true}
+    else {backBlob=file;backChanged=true}
+    setPreview(which,file);
+    input.value='';
+  }
+
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const id=$('#editingId').value;
+    const existing=id?cardById(id):null;
+    if(!frontBlob){showToast('Choose a front image first.');return}
+    const now=Date.now();
+    const card={
+      id: existing?.id || (crypto.randomUUID ? crypto.randomUUID() : `card-${now}-${Math.random().toString(16).slice(2)}`),
+      title: $('#title').value.trim(),
+      category: $('#category').value.trim(),
+      front: frontBlob,
+      back: backBlob || null,
+      fit: $('#fit').value,
+      createdAt: existing?.createdAt || now,
+      updatedAt: now,
+      orderAt: $('#sort').value==='top' ? now : (existing?.orderAt || existing?.updatedAt || now)
+    };
+    try{
+      await putCard(card);
+      closeModal();
+      cards=await getAllCards();
+      render();
+      showToast(existing?'Card updated':'Card added');
+    }catch(err){
+      console.error(err);
+      showToast('Could not save card.');
+    }
+  });
+
+  $('#deleteBtn').addEventListener('click',async()=>{
+    const id=$('#editingId').value;
+    if(!id) return;
+    if(!confirm('Delete this card from this device?')) return;
+    await removeCard(id);
+    closeModal();
+    cards=await getAllCards();
+    if(activeCategory!=='All' && !cards.some(c=>normalizedCategory(c.category)===activeCategory)) activeCategory='All';
+    render();
+    showToast('Card deleted');
+  });
+
+  function openViewer(id){
+    const c=cardById(id); if(!c) return;
+    viewerCardId=id; viewerSide='front';
+    viewer.classList.remove('chrome-hidden');
+    viewerName.textContent=c.title;
+    viewerImg.src=blobUrl(c.front);
+    flipBtn.classList.toggle('hidden',!c.back);
+    flipBtn.textContent='Show back';
+    viewer.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeViewer(){
+    viewer.classList.remove('open','chrome-hidden');
+    document.body.style.overflow='';
+    viewerCardId=null;
+  }
+  function flipViewer(){
+    const c=cardById(viewerCardId); if(!c?.back) return;
+    viewerSide=viewerSide==='front'?'back':'front';
+    viewerImg.src=blobUrl(viewerSide==='front'?c.front:c.back);
+    flipBtn.textContent=viewerSide==='front'?'Show back':'Show front';
+  }
+
+  $('#addBtn').onclick=openAdd;
+  $('#modalClose').onclick=closeModal;
+  modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});
+  search.addEventListener('input',render);
+  $('#frontPick').onclick=()=>$('#frontFile').click();
+  $('#backPick').onclick=()=>$('#backFile').click();
+  $('#frontCamera').onclick=()=>$('#frontCameraFile').click();
+  $('#backCamera').onclick=()=>$('#backCameraFile').click();
+  $('#frontFile').onchange=e=>fileFromInput(e.target,'front');
+  $('#backFile').onchange=e=>fileFromInput(e.target,'back');
+  $('#frontCameraFile').onchange=e=>fileFromInput(e.target,'front');
+  $('#backCameraFile').onchange=e=>fileFromInput(e.target,'back');
+  $('#viewerClose').onclick=closeViewer;
+  $('#viewerEdit').onclick=()=>openEdit(viewerCardId);
+  flipBtn.onclick=flipViewer;
+  $('#stage').onclick=()=>viewer.classList.toggle('chrome-hidden');
+  $('#fullBtn').onclick=async()=>{
+    try{
+      if(!document.fullscreenElement && viewer.requestFullscreen) await viewer.requestFullscreen();
+      else if(document.exitFullscreen) await document.exitFullscreen();
+    }catch(e){}
+  };
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ if(viewer.classList.contains('open')) closeViewer(); else if(modal.classList.contains('open')) closeModal(); }
+  });
+
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();
+    deferredInstallPrompt=e;
+    $('#installBtn').classList.remove('hidden');
+  });
+  $('#installBtn').onclick=async()=>{
+    if(deferredInstallPrompt){
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt=null;
+    }else{
+      $('#installTip').style.display='block';
+      showToast('Use your browser’s Add to Home Screen option.');
+    }
+  };
+
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const standalone=window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if(isIOS && !standalone) $('#installTip').style.display='block';
+
+  if('serviceWorker' in navigator && location.protocol!=='file:'){
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  }
+
+  (async()=>{
+    try{
+      await openDB();
+      cards=await getAllCards();
+      render();
+    }catch(err){
+      console.error(err);
+      wallet.innerHTML='<div class="empty"><strong>Storage unavailable</strong><p>This browser did not allow local IndexedDB storage.</p></div>';
+    }
+  })();
+})();
+</script>
+</body>
+</html>
